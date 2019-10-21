@@ -73,6 +73,7 @@ func NewClient(creds *Credentials) (*Client, error) {
 	client.initClient()
 	return client, err
 }
+
 func NewCredentials(keyId string, issuerId string, privateKey string) *Credentials {
 	return &Credentials{
 		KeyID:    keyId,
@@ -99,7 +100,6 @@ func NewClientFromCredentialsFile(path string) (*Client, error) {
 	return NewClient(creds)
 }
 
-
 func (c *Client) initClient() {
 	t := &http.Transport{
 		MaxIdleConns:    10,
@@ -113,6 +113,10 @@ func (c *Client) initClient() {
 
 func makeUrl(path string) string {
 	return BaseUrl + path
+}
+
+func (c *Client) GetSalesReport(frequency Frequency, reportType ReportType, reportSubType ReportSubType) ([]byte, error) {
+	return c.Get(NewSalesReport(frequency, reportType, reportSubType))
 }
 
 func (c *Client) Get(s *service) ([]byte, error) {
