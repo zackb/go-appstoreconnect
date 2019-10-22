@@ -2,6 +2,13 @@ package encoding
 
 import "errors"
 
+// Encoder defines a type for converting to and from different encodings
+type Encoder interface {
+	Encode(interface{}) ([]byte, error)
+	Decode([]byte, interface{}) error
+}
+
+// Encoding defines an available encoding format
 type Encoding int
 
 const (
@@ -9,6 +16,15 @@ const (
 	Tsv  Encoding = 2
 	Csv  Encoding = 3
 )
+
+func NewEncoder(e Encoding) Encoder {
+	switch e {
+	case Json:
+		return NewJsonEncoder()
+	default:
+		panic("I dont know how to create an encoder: " + e.String())
+	}
+}
 
 func (e *Encoding) Set(s string) error {
 	switch s {

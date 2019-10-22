@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zackb/go-appstoreconnect/tsv"
+	"github.com/zackb/go-appstoreconnect/encoding"
 	"gopkg.in/yaml.v2"
 )
 
@@ -125,7 +125,7 @@ func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType 
 	}
 
 	data := SalesReportResponse{}
-	p, err := tsv.NewParser(bytes.NewReader(b), &data)
+	p, err := encoding.NewTsvParser(bytes.NewReader(b), &data)
 	if err != nil {
 		return nil, err
 	}

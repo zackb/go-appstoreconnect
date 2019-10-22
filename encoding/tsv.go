@@ -10,6 +10,9 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+type TsvEncoder struct {
+}
+
 // TsvParser has information for parser
 type TsvParser struct {
 	Headers    []string
@@ -19,6 +22,20 @@ type TsvParser struct {
 	indices    []int // indices is field index list of header array
 	structMode bool
 	normalize  norm.Form
+}
+
+func NewTsvEncoder() *TsvEncoder {
+	return &TsvEncoder{}
+}
+
+func (t *TsvEncoder) Encode(data interface{}) ([]byte, error) {
+	return nil, nil
+}
+
+func (t *TsvEncoder) Decode(b []byte, v interface{}) error {
+
+	// p, err := NewTsvParser(bytes.NewReader(b), &v)
+	return nil
 }
 
 // NewTsvParser creates new TSV parser with given io.Reader as struct mode

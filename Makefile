@@ -1,4 +1,3 @@
-
 OUT=connect
 
 default: build
@@ -13,4 +12,4 @@ cleandeps:
 	go mod tidy
 
 clean:
-	rm $(OUT)
+	rm -f $(OUT)

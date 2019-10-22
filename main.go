@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/zackb/go-appstoreconnect/appstoreconnect"
+	"github.com/zackb/go-appstoreconnect/encoding"
 )
 
 type cmd struct {
 	credentialsFile string
-	outputFormat    Encoding
+	outputFormat    encoding.Encoding
 }
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 		panic(err)
 	}
 
-	b, err := client.GetSalesReport(
+	d, err := client.GetSalesReport(
 		time.Now(),
 		appstoreconnect.Weekly,
 		appstoreconnect.ReportSales,
@@ -30,9 +31,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, r := range b {
-		fmt.Println(r.Units)
+
+	b, err := encoding.NewJsonEncoder().Encode(d)
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println(string(b))
 }
 
 func parseCmd() (*cmd, error) {
