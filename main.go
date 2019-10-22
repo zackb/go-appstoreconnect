@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/zackb/go-appstoreconnect/appstoreconnect"
 )
-
 
 func main() {
 	client, err := appstoreconnect.NewClientFromCredentialsFile("credentials.yml")
@@ -13,13 +14,15 @@ func main() {
 	}
 
 	b, err := client.GetSalesReport(
-		appstoreconnect.Daily,
+		time.Now(),
+		appstoreconnect.Weekly,
 		appstoreconnect.ReportSales,
 		appstoreconnect.SubReportSummary)
 
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(string(b))
+	for _, r := range b {
+		fmt.Println(r.Units)
+	}
 }

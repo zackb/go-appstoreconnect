@@ -1,18 +1,21 @@
 package appstoreconnect
 
 import (
+	"bytes"
 	"compress/gzip"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/zackb/go-appstoreconnect/tsv"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -115,8 +118,30 @@ func makeUrl(path string) string {
 	return BaseUrl + path
 }
 
-func (c *Client) GetSalesReport(frequency Frequency, reportType ReportType, reportSubType ReportSubType) ([]byte, error) {
-	return c.Get(NewSalesReport(frequency, reportType, reportSubType))
+func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) ([]*SalesReportResponse, error) {
+	b, err := c.Get(NewSalesReport(date, frequency, reportType, reportSubType))
+	if err != nil {
+		return nil, err
+	}
+
+	data := SalesReportResponse{}
+	p, err := tsv.NewParser(bytes.NewReader(b), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := []*SalesReportResponse{}
+	for {
+		eof, err := p.Next()
+		if eof {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, data.Clone())
+	}
+	return ret, nil
 }
 
 func (c *Client) Get(s *service) ([]byte, error) {
