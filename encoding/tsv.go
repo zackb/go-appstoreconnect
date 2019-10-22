@@ -1,4 +1,4 @@
-package tsv
+package encoding
 
 import (
 	"encoding/csv"
@@ -10,8 +10,8 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-// Parser has information for parser
-type Parser struct {
+// TsvParser has information for parser
+type TsvParser struct {
 	Headers    []string
 	Reader     *csv.Reader
 	Data       interface{}
@@ -21,8 +21,8 @@ type Parser struct {
 	normalize  norm.Form
 }
 
-// NewParser creates new TSV parser with given io.Reader as struct mode
-func NewParser(reader io.Reader, data interface{}) (*Parser, error) {
+// NewTsvParser creates new TSV parser with given io.Reader as struct mode
+func NewTsvParser(reader io.Reader, data interface{}) (*TsvParser, error) {
 	r := csv.NewReader(reader)
 	r.Comma = '\t'
 
@@ -37,7 +37,7 @@ func NewParser(reader io.Reader, data interface{}) (*Parser, error) {
 		headers[i] = header
 	}
 
-	p := &Parser{
+	p := &TsvParser{
 		Reader:     r,
 		Headers:    headers,
 		Data:       data,
@@ -74,12 +74,12 @@ func NewParser(reader io.Reader, data interface{}) (*Parser, error) {
 	return p, nil
 }
 
-// NewParserWithoutHeader creates new TSV parser with given io.Reader
-func NewParserWithoutHeader(reader io.Reader, data interface{}) *Parser {
+// NewTsvParserWithoutHeader creates new TSV parser with given io.Reader
+func NewTsvParserWithoutHeader(reader io.Reader, data interface{}) *TsvParser {
 	r := csv.NewReader(reader)
 	r.Comma = '\t'
 
-	p := &Parser{
+	p := &TsvParser{
 		Reader:    r,
 		Data:      data,
 		ref:       reflect.ValueOf(data).Elem(),
@@ -90,7 +90,7 @@ func NewParserWithoutHeader(reader io.Reader, data interface{}) *Parser {
 }
 
 // Next puts reader forward by a line
-func (p *Parser) Next() (eof bool, err error) {
+func (p *TsvParser) Next() (eof bool, err error) {
 
 	// Get next record
 	var records []string
