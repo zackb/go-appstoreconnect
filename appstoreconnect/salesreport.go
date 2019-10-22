@@ -93,24 +93,6 @@ func (r *ReportSubType) String() string {
 	return string(*r)
 }
 
-func timeToReportDate(t time.Time, f Frequency) string {
-	var format string
-	switch f {
-	case Daily:
-		format = "2006-01-02"
-	case Weekly:
-		t = t.AddDate(0, 0, -int(t.Weekday()))
-		format = "2006-01-02"
-	case Monthly:
-		format = "2006-01"
-	case Yearly:
-		format = "2006"
-	default:
-	}
-
-	return t.Format(format)
-}
-
 // Clone deep copy
 func (s *SalesReport) Clone() *SalesReport {
 	c := SalesReport{}
