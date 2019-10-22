@@ -6,7 +6,7 @@ import (
 
 type Frequency string
 
-type TimeIter struct {
+type TimeRange struct {
 	start     time.Time
 	end       time.Time
 	frequency Frequency
@@ -14,8 +14,8 @@ type TimeIter struct {
 	index     int
 }
 
-func NewTimeIterator(start time.Time, end time.Time, frequency Frequency) *TimeIter {
-	t := TimeIter{
+func NewTimeRange(start time.Time, end time.Time, frequency Frequency) *TimeRange {
+	t := TimeRange{
 		start:     start,
 		end:       end,
 		frequency: frequency,
@@ -27,7 +27,7 @@ func NewTimeIterator(start time.Time, end time.Time, frequency Frequency) *TimeI
 	return &t
 }
 
-func (t *TimeIter) Next() bool {
+func (t *TimeRange) Next() bool {
 	var next time.Time
 	if t.index == 0 {
 		next = t.start
@@ -45,7 +45,7 @@ func (t *TimeIter) Next() bool {
 	return false
 }
 
-func (t *TimeIter) Current() time.Time {
+func (t *TimeRange) Current() time.Time {
 	return t.current
 }
 
