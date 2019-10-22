@@ -18,25 +18,30 @@ func main() {
 	c, _ := parseCmd()
 	fmt.Println(c)
 	client, err := appstoreconnect.NewClientFromCredentialsFile(c.credentialsFile)
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 
+	// financeReport(client, c)
+	salesReport(client, c)
+}
+
+func financeReport(client *appstoreconnect.Client, c *cmd) {
+	d, err := client.GetFinanceReport(time.Now(), "US")
+	checkError(err)
+	fmt.Println(string(d))
+}
+
+func salesReport(client *appstoreconnect.Client, c *cmd) {
 	d, err := client.GetSalesReport(
-		time.Now(),
+		time.Now().AddDate(0, -2, 0),
 		appstoreconnect.Weekly,
 		appstoreconnect.ReportSales,
 		appstoreconnect.SubReportSummary)
 
-	if err != nil {
-		panic(err)
-	}
-
+	checkError(err)
 	b, err := encoding.NewJsonEncoder().Encode(d)
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 	fmt.Println(string(b))
+	fmt.Println(d[0].GetHeader())
 }
 
 func parseCmd() (*cmd, error) {
@@ -46,4 +51,10 @@ func parseCmd() (*cmd, error) {
 
 	flag.Parse()
 	return &c, nil
+}
+
+func checkError(e error) {
+	if e != nil {
+		panic(e)
+	}
 }

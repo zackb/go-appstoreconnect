@@ -144,6 +144,10 @@ func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType 
 	return ret, nil
 }
 
+func (c *Client) GetFinanceReport(date time.Time, regionCode string) ([]byte, error) {
+	return c.Get(NewFinanceReport(date, regionCode))
+}
+
 func (c *Client) Get(s *service) ([]byte, error) {
 	req, err := http.NewRequest("GET", makeUrl(s.Path), nil)
 	if err != nil {

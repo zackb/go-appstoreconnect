@@ -8,6 +8,11 @@ type Encoder interface {
 	Decode([]byte, interface{}) error
 }
 
+type Encodable interface {
+	GetHeader() []string
+	Values() []string
+}
+
 // Encoding defines an available encoding format
 type Encoding int
 

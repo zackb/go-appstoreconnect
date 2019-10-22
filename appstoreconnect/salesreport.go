@@ -1,6 +1,7 @@
 package appstoreconnect
 
 import (
+	"reflect"
 	"time"
 )
 
@@ -133,4 +134,18 @@ func (s *SalesReportResponse) Clone() *SalesReportResponse {
 	c.Client = s.Client
 	c.OrderType = s.OrderType
 	return &c
+}
+
+func (s *SalesReportResponse) GetHeader() []string {
+	t := reflect.TypeOf(SalesReportResponse{})
+	tags := []string{}
+	for i := 0; i < t.NumField(); i++ {
+		// Get the field, returns https://golang.org/pkg/reflect/#StructField
+		field := t.Field(i)
+		tag := field.Tag.Get("tsv")
+		tags = append(tags, tag)
+
+	}
+
+	return tags
 }
