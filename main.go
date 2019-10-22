@@ -16,7 +16,6 @@ type cmd struct {
 
 func main() {
 	c, _ := parseCmd()
-	fmt.Println(c)
 	client, err := appstoreconnect.NewClientFromCredentialsFile(c.credentialsFile)
 	checkError(err)
 
@@ -38,10 +37,10 @@ func salesReport(client *appstoreconnect.Client, c *cmd) {
 		appstoreconnect.SubReportSummary)
 
 	checkError(err)
-	b, err := encoding.NewJsonEncoder().Encode(d)
+	b, err := d.ToEncoding(c.outputFormat)
+	// b, err := encoding.NewJsonEncoder().Encode(d)
 	checkError(err)
 	fmt.Println(string(b))
-	fmt.Println(d[0].GetHeader())
 }
 
 func parseCmd() (*cmd, error) {

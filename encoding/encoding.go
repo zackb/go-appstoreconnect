@@ -4,13 +4,14 @@ import "errors"
 
 // Encoder defines a type for converting to and from different encodings
 type Encoder interface {
-	Encode(interface{}) ([]byte, error)
-	Decode([]byte, interface{}) error
+	Encode(Encodable) ([]byte, error)
+	Decode([]byte, Encodable) error
 }
 
 type Encodable interface {
 	GetHeader() []string
 	Values() []string
+	ToEncoding(Encoding) ([]byte, error)
 }
 
 // Encoding defines an available encoding format

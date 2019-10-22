@@ -10,10 +10,10 @@ func NewJsonEncoder() *JsonEncoder {
 	return &JsonEncoder{}
 }
 
-func (e *JsonEncoder) Encode(data interface{}) ([]byte, error) {
+func (e *JsonEncoder) Encode(data Encodable) ([]byte, error) {
 	return json.Marshal(data)
 }
 
-func (e *JsonEncoder) Decode(bytes []byte, v interface{}) error {
+func (e *JsonEncoder) Decode(bytes []byte, v Encodable) error {
 	return json.Unmarshal(bytes, v)
 }

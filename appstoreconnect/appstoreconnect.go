@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -118,19 +117,19 @@ func makeUrl(path string) string {
 	return BaseUrl + path
 }
 
-func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) ([]*SalesReportResponse, error) {
+func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
 	b, err := c.Get(NewSalesReport(date, frequency, reportType, reportSubType))
 	if err != nil {
 		return nil, err
 	}
 
-	data := SalesReportResponse{}
+	data := SalesReport{}
 	p, err := encoding.NewTsvParser(bytes.NewReader(b), &data)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := []*SalesReportResponse{}
+	ret := SalesReportResponse{}
 	for {
 		eof, err := p.Next()
 		if eof {
@@ -139,9 +138,9 @@ func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType 
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, data.Clone())
+		ret.Reports = append(ret.Reports, data.Clone())
 	}
-	return ret, nil
+	return &ret, nil
 }
 
 func (c *Client) GetFinanceReport(date time.Time, regionCode string) ([]byte, error) {
@@ -166,7 +165,6 @@ func (c *Client) Get(s *service) ([]byte, error) {
 	q.Add("filter[vendorNumber]", c.vendorNumber)
 
 	req.URL.RawQuery = q.Encode()
-	fmt.Println(req.URL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
