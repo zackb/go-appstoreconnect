@@ -1,7 +1,12 @@
 package appstoreconnect
 
+// Sales and Trends reports
+// https://developer.apple.com/documentation/appstoreconnectapi/download_sales_and_trends_reports
+
 type Frequency string
+
 type ReportType string
+
 type ReportSubType string
 
 const (
