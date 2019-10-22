@@ -9,5 +9,8 @@ build:
 updatedeps:
 	go list -m -u all
 
+cleandeps:
+	go mod tidy
+
 clean:
 	rm $(OUT)
