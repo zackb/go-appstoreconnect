@@ -19,15 +19,21 @@ import (
 )
 
 const (
-	BaseUrl = "https://api.appstoreconnect.apple.com/v1/"
+	baseURL = "https://api.appstoreconnect.apple.com/v1/"
 )
 
 var (
-	ErrAuthKeyNotPem   = errors.New("token: AuthKey must be a valid .p8 PEM file")
+	// ErrAuthKeyNotPem the key provided is not a pem file
+	ErrAuthKeyNotPem = errors.New("token: AuthKey must be a valid .p8 PEM file")
+
+	// ErrAuthKeyNotECDSA the key provided is not in the expected format (apple)
 	ErrAuthKeyNotECDSA = errors.New("token: AuthKey must be of type ecdsa.PrivateKey")
-	ErrNoData          = errors.New("no data for date range")
+
+	// ErrNoData the endpoint returned a 404, which means do data in that time range
+	ErrNoData = errors.New("no data for date range")
 )
 
+// Credentials holder for all the information needed to communicate with appstore connect api
 type Credentials struct {
 	KeyID        string `yaml:"key_id"`
 	IssuerID     string `yaml:"issuer_id"`
@@ -35,8 +41,9 @@ type Credentials struct {
 	VendorNumber string `yaml:"vendor_number"`
 }
 
+// Client to use to communicate with the connect api
 type Client struct {
-	jwtToken     string
+	jwt          string
 	vendorNumber string
 	client       *http.Client
 
@@ -48,6 +55,7 @@ type service struct {
 	Params map[string]string
 }
 
+// NewClient creates a new connect api client using the provided credential and config information
 func NewClient(creds *Credentials) (*Client, error) {
 	payload := jwt.StandardClaims{
 		Audience:  "appstoreconnect-v1",
@@ -72,12 +80,16 @@ func NewClient(creds *Credentials) (*Client, error) {
 	}
 	client := new(Client)
 	secretStr, err := token.SignedString(key)
-	client.jwtToken = secretStr
+	client.jwt = secretStr
 	client.vendorNumber = creds.VendorNumber
 	client.initClient()
 	return client, err
 }
 
+// NewCredentials creates a representation of the credentials needed to communicate with the connect api
+// keyId is found in the Users and Access section of the UI: https://appstoreconnect.apple.com/access/api
+// issuerId is found in the Users and Access section of the UI: https://appstoreconnect.apple.com/access/api
+// privateKey is downloaded from the same screen https://appstoreconnect.apple.com/access/api
 func NewCredentials(keyId string, issuerId string, privateKey string) *Credentials {
 	return &Credentials{
 		KeyID:    keyId,
@@ -116,7 +128,7 @@ func (c *Client) initClient() {
 }
 
 func makeUrl(path string) string {
-	return BaseUrl + path
+	return baseURL + path
 }
 
 // GetSalesReportRange TODO
@@ -161,10 +173,12 @@ func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType 
 	return &ret, nil
 }
 
+// GetFinanceReport returns raw bytes from the financeReports API. I only have free apps so these are empty
 func (c *Client) GetFinanceReport(date time.Time, regionCode string) ([]byte, error) {
 	return c.Get(NewFinanceReport(date, regionCode))
 }
 
+// Get make a request to the Apple App Store Connect API
 func (c *Client) Get(s *service) ([]byte, error) {
 	req, err := http.NewRequest("GET", makeUrl(s.Path), nil)
 	if err != nil {
@@ -173,7 +187,7 @@ func (c *Client) Get(s *service) ([]byte, error) {
 
 	req.Header.Add("Accept", "application/a-gzip")
 	req.Header.Add("Accept-Encoding", "gzip")
-	req.Header.Add("Authorization", "Bearer "+c.jwtToken)
+	req.Header.Add("Authorization", "Bearer "+c.jwt)
 
 	q := req.URL.Query()
 	for k, v := range s.Params {
