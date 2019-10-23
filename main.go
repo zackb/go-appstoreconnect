@@ -30,9 +30,27 @@ func financeReport(client *appstoreconnect.Client, c *cmd) {
 }
 
 func salesReport(client *appstoreconnect.Client, c *cmd) {
-	d, err := client.GetSalesReport(
-		time.Now().AddDate(0, -2, 0),
-		appstoreconnect.Weekly,
+	/*
+		d, err := client.GetSalesReport(
+			time.Now().AddDate(0, -2, 0),
+			appstoreconnect.Weekly,
+			appstoreconnect.ReportSales,
+			appstoreconnect.SubReportSummary)
+	*/
+	/*
+		appstoreconnect.NewTimeRange(
+			time.Now().Add(-time.Hour*24*3),
+			time.Now().Add(-time.Hour*24),
+			appstoreconnect.Daily,
+		),
+	*/
+	// appstoreconnect.NewSingleTimeRange("2019-09-01", appstoreconnect.Monthly),
+	d, err := client.GetSalesReportRange(
+		appstoreconnect.NewTimeRange(
+			appstoreconnect.NewTime("2019-07-27"),
+			appstoreconnect.NewTime("2019-10-21"),
+			appstoreconnect.Monthly,
+		),
 		appstoreconnect.ReportSales,
 		appstoreconnect.SubReportSummary)
 

@@ -7,36 +7,48 @@ import (
 type Frequency string
 
 type TimeRange struct {
-	start     time.Time
-	end       time.Time
-	frequency Frequency
+	Start     time.Time
+	End       time.Time
+	Frequency Frequency
 	current   time.Time
 	index     int
 }
 
+func NewTime(timeString string) time.Time {
+	return makeTime(timeString)
+}
+
+func NewSingleTimeRange(timeString string, frequency Frequency) *TimeRange {
+	return NewTimeRange(
+		makeTime(timeString),
+		makeTime(timeString),
+		frequency,
+	)
+}
+
 func NewTimeRange(start time.Time, end time.Time, frequency Frequency) *TimeRange {
 	t := TimeRange{
-		start:     start,
-		end:       end,
-		frequency: frequency,
+		Start:     start,
+		End:       end,
+		Frequency: frequency,
 		current:   start,
 		index:     0,
 	}
-	t.start = roundDown(start, frequency)
-	t.end = roundDown(end, frequency)
+	t.Start = roundDown(start, frequency)
+	t.End = roundDown(end, frequency)
 	return &t
 }
 
 func (t *TimeRange) Next() bool {
 	var next time.Time
 	if t.index == 0 {
-		next = t.start
+		next = t.Start
 	} else {
 		// next = t.current.Add(t.interval)
-		next = addFrequency(t.current, t.frequency)
+		next = addFrequency(t.current, t.Frequency)
 	}
 
-	if t.end.Equal(next) || t.end.After(next) {
+	if t.End.Equal(next) || t.End.After(next) {
 		t.current = next
 		t.index++
 		return true
@@ -91,6 +103,14 @@ func roundDown(t time.Time, f Frequency) time.Time {
 	case Monthly:
 		t = t.AddDate(0, 0, -int(t.Day())+1)
 	case Yearly:
+	}
+	return t
+}
+
+func makeTime(value string) time.Time {
+	t, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		panic(err)
 	}
 	return t
 }

@@ -88,14 +88,6 @@ func TestOneMonthly(t *testing.T) {
 	}
 }
 
-func makeTime(value string) time.Time {
-	t, err := time.Parse("2006-01-02", value)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
 func readTimes(itr *TimeRange) []time.Time {
 	var tims []time.Time
 	for itr.Next() {

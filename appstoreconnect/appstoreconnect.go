@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,6 +25,7 @@ const (
 var (
 	ErrAuthKeyNotPem   = errors.New("token: AuthKey must be a valid .p8 PEM file")
 	ErrAuthKeyNotECDSA = errors.New("token: AuthKey must be of type ecdsa.PrivateKey")
+	ErrNoData          = errors.New("no data for date range")
 )
 
 type Credentials struct {
@@ -117,6 +119,22 @@ func makeUrl(path string) string {
 	return BaseUrl + path
 }
 
+// GetSalesReportRange TODO
+func (c *Client) GetSalesReportRange(timeRange *TimeRange, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
+	sr := SalesReportResponse{}
+	for timeRange.Next() {
+		s1, err := c.GetSalesReport(timeRange.Current(), timeRange.Frequency, reportType, reportSubType)
+		if err != nil {
+			if err == ErrNoData {
+				continue
+			}
+			return &sr, err
+		}
+		sr.Reports = append(sr.Reports, s1.Reports...)
+	}
+	return &sr, nil
+}
+
 func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
 	b, err := c.Get(NewSalesReport(date, frequency, reportType, reportSubType))
 	if err != nil {
@@ -166,14 +184,19 @@ func (c *Client) Get(s *service) ([]byte, error) {
 
 	req.URL.RawQuery = q.Encode()
 
+	fmt.Println(req.URL)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode > 299 {
+	if resp.StatusCode > 299 && resp.StatusCode != 404 {
 		body, _ := ioutil.ReadAll(resp.Body)
 		return body, errors.New(string(body))
+	}
+
+	if resp.StatusCode == 404 {
+		return nil, ErrNoData
 	}
 
 	z, err := gzip.NewReader(resp.Body)
