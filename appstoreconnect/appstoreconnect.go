@@ -1,7 +1,6 @@
 package appstoreconnect
 
 import (
-	"bytes"
 	"compress/gzip"
 	"crypto/ecdsa"
 	"crypto/x509"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/zackb/go-appstoreconnect/encoding"
 	"gopkg.in/yaml.v2"
 )
 
@@ -43,9 +41,11 @@ type Credentials struct {
 
 // Client to use to communicate with the connect api
 type Client struct {
-	jwt          string
-	vendorNumber string
-	client       *http.Client
+	jwt           string
+	vendorNumber  string
+	client        *http.Client
+	SalesReport   *SalesReport
+	FinanceReport *FinanceReport
 
 	// TODO token expiry
 }
@@ -53,6 +53,7 @@ type Client struct {
 type service struct {
 	Path   string
 	Params map[string]string
+	client *Client
 }
 
 // NewClient creates a new connect api client using the provided credential and config information
@@ -82,6 +83,13 @@ func NewClient(creds *Credentials) (*Client, error) {
 	secretStr, err := token.SignedString(key)
 	client.jwt = secretStr
 	client.vendorNumber = creds.VendorNumber
+	client.SalesReport = &SalesReport{service: service{
+		client: client,
+	}}
+
+	client.FinanceReport = &FinanceReport{service: service{
+		client: client,
+	}}
 	client.initClient()
 	return client, err
 }
@@ -131,56 +139,9 @@ func makeUrl(path string) string {
 	return baseURL + path
 }
 
-// GetSalesReportRange TODO
-func (c *Client) GetSalesReportRange(timeRange *TimeRange, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
-	sr := SalesReportResponse{}
-	for timeRange.Next() {
-		s1, err := c.GetSalesReport(timeRange.Current(), timeRange.Frequency, reportType, reportSubType)
-		if err != nil {
-			if err == ErrNoData {
-				continue
-			}
-			return &sr, err
-		}
-		sr.Reports = append(sr.Reports, s1.Reports...)
-	}
-	return &sr, nil
-}
-
-func (c *Client) GetSalesReport(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
-	b, err := c.Get(NewSalesReport(date, frequency, reportType, reportSubType))
-	if err != nil {
-		return nil, err
-	}
-
-	data := SalesReport{}
-	p, err := encoding.NewTsvParser(bytes.NewReader(b), &data)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := SalesReportResponse{}
-	for {
-		eof, err := p.Next()
-		if eof {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		ret.Reports = append(ret.Reports, data.Clone())
-	}
-	return &ret, nil
-}
-
-// GetFinanceReport returns raw bytes from the financeReports API. I only have free apps so these are empty
-func (c *Client) GetFinanceReport(date time.Time, regionCode string) ([]byte, error) {
-	return c.Get(NewFinanceReport(date, regionCode))
-}
-
 // Get make a request to the Apple App Store Connect API
-func (c *Client) Get(s *service) ([]byte, error) {
-	req, err := http.NewRequest("GET", makeUrl(s.Path), nil)
+func (c *Client) get(path string, params map[string]string) ([]byte, error) {
+	req, err := http.NewRequest("GET", makeUrl(path), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +151,7 @@ func (c *Client) Get(s *service) ([]byte, error) {
 	req.Header.Add("Authorization", "Bearer "+c.jwt)
 
 	q := req.URL.Query()
-	for k, v := range s.Params {
+	for k, v := range params {
 		q.Add(k, v)
 	}
 

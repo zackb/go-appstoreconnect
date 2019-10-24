@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"time"
 
 	"github.com/zackb/go-appstoreconnect/appstoreconnect"
 	"github.com/zackb/go-appstoreconnect/encoding"
@@ -23,11 +22,13 @@ func main() {
 	salesReport(client, c)
 }
 
+/*
 func financeReport(client *appstoreconnect.Client, c *cmd) {
 	d, err := client.GetFinanceReport(time.Now(), "US")
 	checkError(err)
 	fmt.Println(string(d))
 }
+*/
 
 func salesReport(client *appstoreconnect.Client, c *cmd) {
 	/*
@@ -45,7 +46,7 @@ func salesReport(client *appstoreconnect.Client, c *cmd) {
 		),
 	*/
 	// appstoreconnect.NewSingleTimeRange("2019-09-01", appstoreconnect.Monthly),
-	d, err := client.GetSalesReportRange(
+	d, err := client.SalesReport.GetRange(
 		appstoreconnect.NewTimeRange(
 			appstoreconnect.NewTime("2019-07-27"),
 			appstoreconnect.NewTime("2019-10-21"),

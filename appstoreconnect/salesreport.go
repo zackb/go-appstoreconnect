@@ -21,9 +21,9 @@ type ReportType string
 type ReportSubType string
 
 type SalesReportResponse struct {
-	Reports []*SalesReport
+	Reports []*SalesReportItem
 }
-type SalesReport struct {
+type SalesReportItem struct {
 	Provider              string `tsv:"Provider"`
 	ProviderCountry       string `tsv:"Provider Country"`
 	SKU                   string `tsv:"SKU"`
@@ -54,6 +54,14 @@ type SalesReport struct {
 	OrderType             string `tsv:"Order Type"`
 }
 
+type SalesReport struct {
+	service
+}
+
+const (
+	Path = "salesReports"
+)
+
 const (
 	Daily   Frequency = "DAILY"
 	Weekly  Frequency = "WEEKLY"
@@ -69,18 +77,6 @@ const (
 	SubReportSummary ReportSubType = "SUMMARY"
 )
 
-func NewSalesReport(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) *service {
-	return &service{
-		Path: "salesReports",
-		Params: map[string]string{
-			"filter[frequency]":     frequency.String(),
-			"filter[reportDate]":    timeToReportDate(date, frequency),
-			"filter[reportType]":    reportType.String(),
-			"filter[reportSubType]": reportSubType.String(),
-		},
-	}
-}
-
 func (f *Frequency) String() string {
 	return string(*f)
 }
@@ -94,8 +90,8 @@ func (r *ReportSubType) String() string {
 }
 
 // Clone deep copy
-func (s *SalesReport) Clone() *SalesReport {
-	c := SalesReport{}
+func (s *SalesReportItem) Clone() *SalesReportItem {
+	c := SalesReportItem{}
 	c.Provider = s.Provider
 	c.ProviderCountry = s.ProviderCountry
 	c.SKU = s.SKU
@@ -127,8 +123,57 @@ func (s *SalesReport) Clone() *SalesReport {
 	return &c
 }
 
-func (s *SalesReport) GetHeader() []string {
-	t := reflect.TypeOf(SalesReport{})
+// GetRange TODO
+func (c *SalesReport) GetRange(timeRange *TimeRange, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
+	sr := SalesReportResponse{}
+	for timeRange.Next() {
+		s1, err := c.Get(timeRange.Current(), timeRange.Frequency, reportType, reportSubType)
+		if err != nil {
+			if err == ErrNoData {
+				continue
+			}
+			return &sr, err
+		}
+		sr.Reports = append(sr.Reports, s1.Reports...)
+	}
+	return &sr, nil
+}
+
+func (c *SalesReport) Get(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
+	path := "salesReports"
+	params := map[string]string{
+		"filter[frequency]":     frequency.String(),
+		"filter[reportDate]":    timeToReportDate(date, frequency),
+		"filter[reportType]":    reportType.String(),
+		"filter[reportSubType]": reportSubType.String(),
+	}
+	b, err := c.client.get(path, params)
+	if err != nil {
+		return nil, err
+	}
+
+	data := SalesReportItem{}
+	p, err := encoding.NewTsvParser(bytes.NewReader(b), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := SalesReportResponse{}
+	for {
+		eof, err := p.Next()
+		if eof {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		ret.Reports = append(ret.Reports, data.Clone())
+	}
+	return &ret, nil
+}
+
+func (s *SalesReportItem) GetHeader() []string {
+	t := reflect.TypeOf(SalesReportItem{})
 	tags := []string{}
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -139,7 +184,7 @@ func (s *SalesReport) GetHeader() []string {
 	return tags
 }
 
-func (s *SalesReport) Values() []string {
+func (s *SalesReportItem) Values() []string {
 	vals := []string{}
 	t := reflect.ValueOf(s).Elem()
 	for i := 0; i < t.NumField(); i++ {
@@ -159,7 +204,7 @@ func (s *SalesReportResponse) ToCsv() ([]byte, error) {
 	buf := bufio.NewWriter(&b)
 
 	w := csv.NewWriter(buf)
-	d := SalesReport{}
+	d := SalesReportItem{}
 	headers := d.GetHeader()
 	if err := w.Write(headers); err != nil {
 		return nil, err
