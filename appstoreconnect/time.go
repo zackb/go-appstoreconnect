@@ -174,3 +174,12 @@ func parseFrequency(value string) Frequency {
 	}
 	return f
 }
+
+func Yesterday() *TimeRange {
+	t := time.Now().AddDate(0, 0, -1)
+	return &TimeRange{
+		Start:     t,
+		End:       t,
+		Frequency: Daily,
+	}
+}

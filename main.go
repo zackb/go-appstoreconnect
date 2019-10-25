@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"time"
 
 	"github.com/zackb/go-appstoreconnect/appstoreconnect"
 	"github.com/zackb/go-appstoreconnect/encoding"
@@ -19,12 +18,13 @@ type cmd struct {
 	service         string
 	credentialsFile string
 	outputFormat    encoding.Encoding
-	dateRange       string
+	timeRange       *appstoreconnect.TimeRange
 }
 
 func main() {
 	c, err := parseCmd()
 	if err != nil {
+		panic(err)
 		flag.Usage()
 		return
 	}
@@ -32,22 +32,20 @@ func main() {
 	checkError(err)
 	e, err := c.execute(client)
 	checkError(err)
-	fmt.Println(e.ToEncoding(c.outputFormat))
+	b, err := e.ToEncoding(c.outputFormat)
+	checkError(err)
+	fmt.Println(string(b))
 }
 
 func (c *cmd) execute(client *appstoreconnect.Client) (encoding.Encodable, error) {
 	switch c.service {
 	case CmdSalesReport:
 		return client.SalesReport.GetRange(
-			appstoreconnect.NewTimeRange(
-				appstoreconnect.NewTime("2019-07-27"),
-				appstoreconnect.NewTime("2019-10-21"),
-				appstoreconnect.Monthly,
-			),
+			c.timeRange,
 			appstoreconnect.ReportSales,
 			appstoreconnect.SubReportSummary)
 	case CmdFinanceReport:
-		return client.FinanceReport.Get(time.Now(), "US")
+		return client.FinanceReport.Get(c.timeRange.Start, "US")
 	default:
 		flag.Usage()
 	}
@@ -56,18 +54,29 @@ func (c *cmd) execute(client *appstoreconnect.Client) (encoding.Encodable, error
 
 func parseCmd() (*cmd, error) {
 	c := cmd{}
+	var d string
 	flag.StringVar(&c.credentialsFile, "c", "credentials.yml", "path to credentials yaml file")
-	flag.StringVar(&c.dateRange, "d", "", "date string")
+	flag.StringVar(&d, "d", "", "date string")
 	flag.Var(&c.outputFormat, "o", "output format")
+	flag.Parse()
 	c.service = flag.Arg(0)
 	if c.service == "" {
 		return nil, errors.New("Must specify a command")
 	}
 
-	if c.dateRange == "" {
-		c.dateRange = time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+	// default to json
+	if c.outputFormat == encoding.None {
+		c.outputFormat = encoding.Json
 	}
-	return &c, nil
+
+	var err error
+	if d == "" {
+		c.timeRange = appstoreconnect.Yesterday()
+	} else {
+		c.timeRange, err = appstoreconnect.ParseTimeRange(d)
+
+	}
+	return &c, err
 }
 
 func checkError(e error) {

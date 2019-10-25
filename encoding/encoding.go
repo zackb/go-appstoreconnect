@@ -18,6 +18,7 @@ type Encodable interface {
 type Encoding int
 
 const (
+	None Encoding = 0
 	Json Encoding = 1
 	Tsv  Encoding = 2
 	Csv  Encoding = 3

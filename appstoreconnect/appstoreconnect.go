@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -161,7 +160,6 @@ func (c *Client) get(path string, params map[string]string) ([]byte, error) {
 
 	req.URL.RawQuery = q.Encode()
 
-	fmt.Println(req.URL)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
