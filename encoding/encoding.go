@@ -9,8 +9,8 @@ type Encoder interface {
 }
 
 type Encodable interface {
-	GetHeader() []string
-	Values() []string
+	// GetHeader() []string
+	// Values() []string
 	ToEncoding(Encoding) ([]byte, error)
 }
 

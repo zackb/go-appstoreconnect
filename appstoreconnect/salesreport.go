@@ -57,7 +57,7 @@ type SalesReportItem struct {
 type SalesReport service
 
 const (
-	Path = "salesReports"
+	pathSalesReports = "salesReports"
 )
 
 const (
@@ -150,14 +150,13 @@ func (s *SalesReport) GetYear(year string, reportType ReportType, reportSubType 
 }
 
 func (c *SalesReport) Get(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
-	path := "salesReports"
 	params := map[string]string{
 		"filter[frequency]":     frequency.String(),
 		"filter[reportDate]":    timeToReportDate(date, frequency),
 		"filter[reportType]":    reportType.String(),
 		"filter[reportSubType]": reportSubType.String(),
 	}
-	b, err := c.client.get(path, params)
+	b, err := c.client.get(pathSalesReports, params)
 	if err != nil {
 		return nil, err
 	}

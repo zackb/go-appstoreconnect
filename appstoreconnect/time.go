@@ -1,7 +1,14 @@
 package appstoreconnect
 
 import (
+	"errors"
+	"strings"
 	"time"
+)
+
+var (
+	// ErrTimeFormatInvalid bad date string
+	ErrTimeFormatInvalid = errors.New("timerange: invalid format")
 )
 
 type Frequency string
@@ -15,13 +22,37 @@ type TimeRange struct {
 }
 
 func NewTime(timeString string) time.Time {
-	return makeTime(timeString)
+	return parseTime(timeString)
+}
+
+func ParseTimeRange(value string) (*TimeRange, error) {
+	if value == "" {
+		return nil, ErrTimeFormatInvalid
+	}
+
+	// not a range
+	parts := strings.Split(value, ":")
+	t1 := parseTime(parts[0])
+	var t2 time.Time
+	f := parseFrequency(parts[0])
+	if len(parts) > 1 {
+		t2 = parseTime(parts[1])
+		if t1.After(t2) {
+			temp := t1
+			t1 = t2
+			t2 = temp
+		}
+	} else {
+		t2 = t1
+	}
+
+	return NewTimeRange(t1, t2, f), nil
 }
 
 func NewSingleTimeRange(timeString string, frequency Frequency) *TimeRange {
 	return NewTimeRange(
-		makeTime(timeString),
-		makeTime(timeString),
+		parseTime(timeString),
+		parseTime(timeString),
 		frequency,
 	)
 }
@@ -107,17 +138,39 @@ func roundDown(t time.Time, f Frequency) time.Time {
 	return t
 }
 
-func makeTime(value string) time.Time {
+func parseTime(value string) time.Time {
 	fmt := "2006-01-02"
 	if len(value) == 4 {
 		fmt = "2006"
 	} else if len(value) == 7 {
 		fmt = "2006-01"
+	} else if len(value) == 10 && strings.Contains(value, "w") {
+		fmt = "2006-01-w2"
 	}
 
 	t, err := time.Parse(fmt, value)
 	if err != nil {
 		panic(err)
 	}
+	if strings.Contains(value, "w") {
+		t = t.AddDate(0, 0, t.Day()*7)
+	}
 	return t
+}
+
+func parseFrequency(value string) Frequency {
+	f := Daily
+	switch len(value) {
+	case 4:
+		f = Yearly
+	case 7:
+		f = Monthly
+	case 10:
+		if strings.Contains(value, "w") {
+			f = Weekly
+		} else {
+			f = Daily
+		}
+	}
+	return f
 }
