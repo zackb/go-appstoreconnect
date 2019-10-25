@@ -108,7 +108,14 @@ func roundDown(t time.Time, f Frequency) time.Time {
 }
 
 func makeTime(value string) time.Time {
-	t, err := time.Parse("2006-01-02", value)
+	fmt := "2006-01-02"
+	if len(value) == 4 {
+		fmt = "2006"
+	} else if len(value) == 7 {
+		fmt = "2006-01"
+	}
+
+	t, err := time.Parse(fmt, value)
 	if err != nil {
 		panic(err)
 	}

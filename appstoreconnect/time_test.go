@@ -88,6 +88,20 @@ func TestOneMonthly(t *testing.T) {
 	}
 }
 
+func TestParseYear(t *testing.T) {
+	tm := NewTime("2019")
+	if tm.Year() != 2019 || tm.Month() != 01 || tm.Day() != 01 {
+		t.Error("unexpected year time parsed: " + tm.String())
+	}
+}
+
+func TestParseMonth(t *testing.T) {
+	tm := NewTime("2018-05")
+	if tm.Year() != 2018 || tm.Month() != 05 || tm.Day() != 01 {
+		t.Error("unexpected month time parsed: " + tm.String())
+	}
+}
+
 func readTimes(itr *TimeRange) []time.Time {
 	var tims []time.Time
 	for itr.Next() {

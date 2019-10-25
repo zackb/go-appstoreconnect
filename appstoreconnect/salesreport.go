@@ -139,6 +139,18 @@ func (c *SalesReport) GetRange(timeRange *TimeRange, reportType ReportType, repo
 	return &sr, nil
 }
 
+func (s *SalesReport) GetDay(day string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
+	return s.Get(NewTime(day), Daily, reportType, reportSubType)
+}
+
+func (s *SalesReport) GetMonth(month string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
+	return s.Get(NewTime(month), Monthly, reportType, reportSubType)
+}
+
+func (s *SalesReport) GetYear(year string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
+	return s.Get(NewTime(year), Yearly, reportType, reportSubType)
+}
+
 func (c *SalesReport) Get(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
 	path := "salesReports"
 	params := map[string]string{
