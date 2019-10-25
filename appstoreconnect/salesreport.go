@@ -54,9 +54,7 @@ type SalesReportItem struct {
 	OrderType             string `tsv:"Order Type"`
 }
 
-type SalesReport struct {
-	service
-}
+type SalesReport service
 
 const (
 	Path = "salesReports"

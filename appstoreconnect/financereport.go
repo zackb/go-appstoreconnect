@@ -9,9 +9,7 @@ const (
 	PathFinanceReport = "financeReports"
 )
 
-type FinanceReport struct {
-	service
-}
+type FinanceReport service
 
 func (f *FinanceReport) Get(date time.Time, regionCode string) ([]byte, error) {
 

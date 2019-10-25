@@ -83,13 +83,15 @@ func NewClient(creds *Credentials) (*Client, error) {
 	secretStr, err := token.SignedString(key)
 	client.jwt = secretStr
 	client.vendorNumber = creds.VendorNumber
-	client.SalesReport = &SalesReport{service: service{
-		client: client,
-	}}
 
-	client.FinanceReport = &FinanceReport{service: service{
+	// Reuse a single struct instead of allocating one for each service on the heap
+	svc := &service{
 		client: client,
-	}}
+	}
+
+	client.SalesReport = (*SalesReport)(svc)
+	client.FinanceReport = (*FinanceReport)(svc)
+
 	client.initClient()
 	return client, err
 }
