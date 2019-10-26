@@ -16,13 +16,18 @@ import (
 // Sales and Trends reports
 // https://developer.apple.com/documentation/appstoreconnectapi/download_sales_and_trends_reports
 
+// ReportType one of SALES, PRE_ORDER, NEWSSTAND, SUBSCRIPTION, SUBSCRIPTION_EVENT, SUBSCRIBER
 type ReportType string
 
+// ReportSubType one of SUMMARY, DETAILED, OPT_IN
 type ReportSubType string
 
+// SalesReportResponse represents the response from a sales report request
 type SalesReportResponse struct {
 	Reports []*SalesReportItem
 }
+
+// SalesReportItem is information returned about SALES -> SUMMARY reports
 type SalesReportItem struct {
 	Provider              string `tsv:"Provider"`
 	ProviderCountry       string `tsv:"Provider Country"`
@@ -54,12 +59,14 @@ type SalesReportItem struct {
 	OrderType             string `tsv:"Order Type"`
 }
 
+// SalesReport service is responsible for communicating with the "salesRepors" endpoint
 type SalesReport service
 
 const (
 	pathSalesReports = "salesReports"
 )
 
+// Frequency is the aggregation level of the data returned
 const (
 	Daily   Frequency = "DAILY"
 	Weekly  Frequency = "WEEKLY"
@@ -137,14 +144,17 @@ func (c *SalesReport) GetRange(timeRange *TimeRange, reportType ReportType, repo
 	return &sr, nil
 }
 
+// GetDay gets one day of sales report data
 func (s *SalesReport) GetDay(day string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
 	return s.Get(NewTime(day), Daily, reportType, reportSubType)
 }
 
+// GetMonth gets one month of sales report data
 func (s *SalesReport) GetMonth(month string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
 	return s.Get(NewTime(month), Monthly, reportType, reportSubType)
 }
 
+// GetYear gets one year of sales report data
 func (s *SalesReport) GetYear(year string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
 	return s.Get(NewTime(year), Yearly, reportType, reportSubType)
 }
@@ -215,6 +225,7 @@ func (s *SalesReportResponse) ToCsv() ([]byte, error) {
 	w := csv.NewWriter(buf)
 	d := SalesReportItem{}
 	headers := d.GetHeader()
+	// TODO:  w.Comma = '\t'
 	if err := w.Write(headers); err != nil {
 		return nil, err
 	}
