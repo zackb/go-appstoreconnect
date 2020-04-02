@@ -96,17 +96,18 @@ func NewClient(creds *Credentials) (*Client, error) {
 }
 
 // NewCredentials creates a representation of the credentials needed to communicate with the connect api
-// keyId is found in the Users and Access section of the UI: https://appstoreconnect.apple.com/access/api
-// issuerId is found in the Users and Access section of the UI: https://appstoreconnect.apple.com/access/api
+// keyID is found in the Users and Access section of the UI: https://appstoreconnect.apple.com/access/api
+// issuerID is found in the Users and Access section of the UI: https://appstoreconnect.apple.com/access/api
 // privateKey is downloaded from the same screen https://appstoreconnect.apple.com/access/api
-func NewCredentials(keyId string, issuerId string, privateKey string) *Credentials {
+func NewCredentials(keyID string, issuerID string, privateKey string) *Credentials {
 	return &Credentials{
-		KeyID:    keyId,
-		IssuerID: issuerId,
+		KeyID:    keyID,
+		IssuerID: issuerID,
 		PrivKey:  privateKey,
 	}
 }
 
+// NewCredentialsFromFile creates credentials given a yaml file location
 func NewCredentialsFromFile(path string) (*Credentials, error) {
 	c := new(Credentials)
 	b, err := ioutil.ReadFile(path)
@@ -117,6 +118,8 @@ func NewCredentialsFromFile(path string) (*Credentials, error) {
 	return c, e
 }
 
+// NewClientFromCredentialsFile creates credentials and an app store connect client
+// given the location of a yaml file with credential information
 func NewClientFromCredentialsFile(path string) (*Client, error) {
 	creds, err := NewCredentialsFromFile(path)
 	if err != nil {
@@ -136,13 +139,13 @@ func (c *Client) initClient() {
 	}
 }
 
-func makeUrl(path string) string {
+func makeURL(path string) string {
 	return baseURL + path
 }
 
 // Get make a request to the Apple App Store Connect API
 func (c *Client) get(path string, params map[string]string) ([]byte, error) {
-	req, err := http.NewRequest("GET", makeUrl(path), nil)
+	req, err := http.NewRequest("GET", makeURL(path), nil)
 	if err != nil {
 		return nil, err
 	}
