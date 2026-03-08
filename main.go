@@ -47,6 +47,7 @@ func (c *cmd) execute(client *appstoreconnect.Client) (encoding.Encodable, error
 			appstoreconnect.SubReportSummary)
 	case CmdFinanceReport:
 		return client.FinanceReport.Get(c.timeRange.Start, "US")
+		// TODO: return client.FinanceReport.GetRange(c.timeRange, "US")
 	default:
 		flag.Usage()
 	}

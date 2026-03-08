@@ -32,6 +32,10 @@ func (f *FinanceReport) Get(date time.Time, regionCode string) (*FinanceReportRe
 	return &FinanceReportResponse{raw: b}, err
 }
 
+func (f *FinanceReport) GetRange(tr *TimeRange, regionCode string) (*FinanceReportResponse, error) {
+	panic("TODO: FinanceReport does not support GetRange yet")
+}
+
 // I only make free apps so I dont know what this returns!
 func (f *FinanceReportResponse) ToEncoding(e encoding.Encoding) ([]byte, error) {
 	return f.raw, nil
