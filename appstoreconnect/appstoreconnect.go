@@ -6,9 +6,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -110,7 +111,7 @@ func NewCredentials(keyID string, issuerID string, privateKey string) *Credentia
 // NewCredentialsFromFile creates credentials given a yaml file location
 func NewCredentialsFromFile(path string) (*Credentials, error) {
 	c := new(Credentials)
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ func (c *Client) get(path string, params map[string]string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 299 && resp.StatusCode != 404 {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		return body, errors.New(string(body))
 	}
 
@@ -183,7 +184,7 @@ func (c *Client) get(path string, params map[string]string) ([]byte, error) {
 	}
 	defer z.Close()
 
-	return ioutil.ReadAll(z)
+	return io.ReadAll(z)
 }
 
 func parseP8PrivKey(bytes []byte) (*ecdsa.PrivateKey, error) {
