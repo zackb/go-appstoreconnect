@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/zackb/go-appstoreconnect/appstoreconnect"
 	"github.com/zackb/go-appstoreconnect/encoding"
@@ -55,14 +56,18 @@ func (c *cmd) execute(client *appstoreconnect.Client) (encoding.Encodable, error
 func parseCmd() (*cmd, error) {
 	c := cmd{}
 	var d string
-	flag.StringVar(&c.credentialsFile, "c", "credentials.yml", "path to credentials yaml file")
-	flag.StringVar(&d, "d", "", "date string")
-	flag.Var(&c.outputFormat, "o", "output format")
-	flag.Parse()
-	c.service = flag.Arg(0)
-	if c.service == "" {
+
+	if len(os.Args) < 2 {
 		return nil, errors.New("Must specify a command")
 	}
+
+	c.service = os.Args[1]
+
+	fs := flag.NewFlagSet(c.service, flag.ExitOnError)
+	fs.StringVar(&c.credentialsFile, "c", "credentials.yml", "path to credentials yaml file")
+	fs.StringVar(&d, "d", "", "date string")
+	fs.Var(&c.outputFormat, "o", "output format")
+	fs.Parse(os.Args[2:])
 
 	// default to json
 	if c.outputFormat == encoding.None {

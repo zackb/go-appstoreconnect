@@ -252,12 +252,36 @@ func (s *SalesReportResponse) ToCsv() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+func (s *SalesReportResponse) ToTsv() ([]byte, error) {
+	b := bytes.Buffer{}
+	buf := bufio.NewWriter(&b)
+
+	w := csv.NewWriter(buf)
+	w.Comma = '\t'
+	d := SalesReportItem{}
+	headers := d.GetHeader()
+	if err := w.Write(headers); err != nil {
+		return nil, err
+	}
+
+	for _, r := range s.Reports {
+		values := r.Values()
+		if err := w.Write(values); err != nil {
+			return nil, err
+		}
+	}
+	buf.Flush()
+	return b.Bytes(), nil
+}
+
 func (s *SalesReportResponse) ToEncoding(e encoding.Encoding) ([]byte, error) {
 	switch e {
 	case encoding.Json:
 		return s.ToJson()
 	case encoding.Csv:
 		return s.ToCsv()
+	case encoding.Tsv:
+		return s.ToTsv()
 	}
 	return nil, errors.New("I dont know how to encode that: " + e.String())
 }
