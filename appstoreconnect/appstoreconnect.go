@@ -12,7 +12,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"gopkg.in/yaml.v2"
 )
 
@@ -58,21 +58,14 @@ type service struct {
 
 // NewClient creates a new connect api client using the provided credential and config information
 func NewClient(creds *Credentials) (*Client, error) {
-	payload := jwt.StandardClaims{
-		Audience:  "appstoreconnect-v1",
+	payload := jwt.RegisteredClaims{
+		Audience:  jwt.ClaimStrings{"appstoreconnect-v1"},
 		Issuer:    creds.IssuerID,
-		ExpiresAt: time.Now().Unix() + 600,
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
 	}
 
-	token := jwt.Token{
-		Header: map[string]interface{}{
-			"typ": "JWT",
-			"alg": "ES256",
-			"kid": creds.KeyID,
-		},
-		Claims: payload,
-		Method: jwt.SigningMethodES256,
-	}
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, payload)
+	token.Header["kid"] = creds.KeyID
 
 	key, err := parseP8PrivKey([]byte(creds.PrivKey))
 	if err != nil {
