@@ -2,6 +2,7 @@ package appstoreconnect
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -21,8 +22,9 @@ type TimeRange struct {
 	index     int
 }
 
-func NewTime(timeString string) time.Time {
-	return parseTime(timeString)
+func NewTime(timeString string) (time.Time, error) {
+	t, _, err := parseTimeAndFrequency(timeString)
+	return t, err
 }
 
 func ParseTimeRange(value string) (*TimeRange, error) {
@@ -30,13 +32,18 @@ func ParseTimeRange(value string) (*TimeRange, error) {
 		return nil, ErrTimeFormatInvalid
 	}
 
-	// not a range
 	parts := strings.Split(value, ":")
-	t1 := parseTime(parts[0])
+	t1, f, err := parseTimeAndFrequency(parts[0])
+	if err != nil {
+		return nil, err
+	}
+
 	var t2 time.Time
-	f := parseFrequency(parts[0])
 	if len(parts) > 1 {
-		t2 = parseTime(parts[1])
+		t2, _, err = parseTimeAndFrequency(parts[1])
+		if err != nil {
+			return nil, err
+		}
 		if t1.After(t2) {
 			temp := t1
 			t1 = t2
@@ -49,12 +56,12 @@ func ParseTimeRange(value string) (*TimeRange, error) {
 	return NewTimeRange(t1, t2, f), nil
 }
 
-func NewSingleTimeRange(timeString string, frequency Frequency) *TimeRange {
-	return NewTimeRange(
-		parseTime(timeString),
-		parseTime(timeString),
-		frequency,
-	)
+func NewSingleTimeRange(timeString string, frequency Frequency) (*TimeRange, error) {
+	t, err := NewTime(timeString)
+	if err != nil {
+		return nil, err
+	}
+	return NewTimeRange(t, t, frequency), nil
 }
 
 func NewTimeRange(start time.Time, end time.Time, frequency Frequency) *TimeRange {
@@ -138,41 +145,30 @@ func roundDown(t time.Time, f Frequency) time.Time {
 	return t
 }
 
-func parseTime(value string) time.Time {
-	fmt := "2006-01-02"
-	if len(value) == 4 {
-		fmt = "2006"
-	} else if len(value) == 7 {
-		fmt = "2006-01"
-	} else if len(value) == 10 && strings.Contains(value, "w") {
-		fmt = "2006-01-w2"
-	}
-
-	t, err := time.Parse(fmt, value)
-	if err != nil {
-		panic(err)
-	}
-	if strings.Contains(value, "w") {
-		t = t.AddDate(0, 0, t.Day()*7)
-	}
-	return t
-}
-
-func parseFrequency(value string) Frequency {
-	f := Daily
-	switch len(value) {
-	case 4:
-		f = Yearly
-	case 7:
-		f = Monthly
-	case 10:
-		if strings.Contains(value, "w") {
-			f = Weekly
-		} else {
-			f = Daily
+func parseTimeAndFrequency(value string) (time.Time, Frequency, error) {
+	parts := strings.Split(value, "-")
+	switch len(parts) {
+	case 1:
+		t, err := time.Parse("2006", value)
+		return t, Yearly, err
+	case 2:
+		t, err := time.Parse("2006-01", value)
+		return t, Monthly, err
+	case 3:
+		if strings.HasPrefix(parts[2], "w") {
+			var year, month, week int
+			_, err := fmt.Sscanf(value, "%d-%d-w%d", &year, &month, &week)
+			if err != nil {
+				return time.Time{}, Weekly, ErrTimeFormatInvalid
+			}
+			t := time.Date(year, time.Month(month), week, 0, 0, 0, 0, time.UTC)
+			t = t.AddDate(0, 0, week*7)
+			return t, Weekly, nil
 		}
+		t, err := time.Parse("2006-01-02", value)
+		return t, Daily, err
 	}
-	return f
+	return time.Time{}, Daily, ErrTimeFormatInvalid
 }
 
 func Yesterday() *TimeRange {

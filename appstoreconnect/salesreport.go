@@ -146,17 +146,29 @@ func (c *SalesReport) GetRange(timeRange *TimeRange, reportType ReportType, repo
 
 // GetDay gets one day of sales report data
 func (s *SalesReport) GetDay(day string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
-	return s.Get(NewTime(day), Daily, reportType, reportSubType)
+	t, err := NewTime(day)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(t, Daily, reportType, reportSubType)
 }
 
 // GetMonth gets one month of sales report data
 func (s *SalesReport) GetMonth(month string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
-	return s.Get(NewTime(month), Monthly, reportType, reportSubType)
+	t, err := NewTime(month)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(t, Monthly, reportType, reportSubType)
 }
 
 // GetYear gets one year of sales report data
 func (s *SalesReport) GetYear(year string, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {
-	return s.Get(NewTime(year), Yearly, reportType, reportSubType)
+	t, err := NewTime(year)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(t, Yearly, reportType, reportSubType)
 }
 
 func (c *SalesReport) Get(date time.Time, frequency Frequency, reportType ReportType, reportSubType ReportSubType) (*SalesReportResponse, error) {

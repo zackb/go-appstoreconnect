@@ -6,6 +6,14 @@ import (
 	"time"
 )
 
+func parseTime(value string) time.Time {
+	t, _, err := parseTimeAndFrequency(value)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
 func TestWeekly(t *testing.T) {
 	expected := []time.Time{
 		parseTime("2019-09-08"),
@@ -89,14 +97,20 @@ func TestOneMonthly(t *testing.T) {
 }
 
 func TestParseYear(t *testing.T) {
-	tm := NewTime("2019")
+	tm, err := NewTime("2019")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if tm.Year() != 2019 || tm.Month() != 01 || tm.Day() != 01 {
 		t.Error("unexpected year time parsed: " + tm.String())
 	}
 }
 
 func TestParseMonth(t *testing.T) {
-	tm := NewTime("2018-05")
+	tm, err := NewTime("2018-05")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if tm.Year() != 2018 || tm.Month() != 05 || tm.Day() != 01 {
 		t.Error("unexpected month time parsed: " + tm.String())
 	}
