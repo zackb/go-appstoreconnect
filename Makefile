@@ -3,7 +3,7 @@ OUT=connect
 default: build
 
 build:
-	go build -o $(OUT)
+	go build -o $(OUT) ./cmd/connect.go
 
 test:
 	go test -v github.com/zackb/go-appstoreconnect/appstoreconnect

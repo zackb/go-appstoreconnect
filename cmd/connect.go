@@ -25,16 +25,26 @@ type cmd struct {
 func main() {
 	c, err := parseCmd()
 	if err != nil {
-		panic(err)
 		flag.Usage()
+		fmt.Fprintln(os.Stderr, err)
 		return
 	}
+
 	client, err := appstoreconnect.NewClientFromCredentialsFile(c.credentialsFile)
-	checkError(err)
+	if checkError(err) {
+		return
+	}
+
 	e, err := c.execute(client)
-	checkError(err)
+	if checkError(err) {
+		return
+	}
+
 	b, err := e.ToEncoding(c.outputFormat)
-	checkError(err)
+	if checkError(err) {
+		return
+	}
+
 	fmt.Println(string(b))
 }
 
@@ -85,8 +95,10 @@ func parseCmd() (*cmd, error) {
 	return &c, err
 }
 
-func checkError(e error) {
+func checkError(e error) bool {
 	if e != nil {
-		panic(e)
+		fmt.Fprintln(os.Stderr, e)
+		return true
 	}
+	return false
 }
