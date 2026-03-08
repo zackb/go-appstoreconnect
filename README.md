@@ -8,15 +8,24 @@ The example CLI application is the only documentation or example usage of the li
 ### CLI
 Run `make` to create a CLI app which uses the library. 
 
-example use
+### Time Ranges
+The `-d` flag accepts a single date or a range separated by a colon (`:`). The format you provide determines the frequency of the data (Yearly, Monthly, Weekly, or Daily).
 
-Weeky JSON sales report from first week of September to third week of February
-```
+#### Examples
+* **Daily**: `2020-01-01` or `2020-01-01:2020-01-05`
+* **Weekly**: `2019-09-w1` or `2019-09-w1:2020-02-w3` (format is year-month-week)
+* **Monthly**: `2020-01` or `2020-01:2020-05`
+* **Yearly**: `2020` or `2018:2020`
+
+### CLI Examples
+
+Weekly JSON sales report from first week of September to third week of February:
+```bash
 ./connect SalesReport -d 2019-09-w1:2020-02-w3  -o json
 ```
 
-Single day CSV sales report for January 1
-```
+Single day CSV sales report for January 1st:
+```bash
 ./connect SalesReport -d 2020-01-01 -o csv
 ```
 
