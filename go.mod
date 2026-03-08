@@ -4,6 +4,6 @@ go 1.26.1
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	golang.org/x/text v0.3.2
+	golang.org/x/text v0.3.8
 	gopkg.in/yaml.v2 v2.2.4
 )
