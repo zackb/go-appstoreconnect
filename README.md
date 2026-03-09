@@ -1,5 +1,4 @@
 # AppStore Connect API for Golang
-This project is not comprehensive or even in alpha state.
 
 **NOTICE**: This project is not comprehensive or even in alpha state. It is a work in progress and is not suitable for production use. Use at your own risk. Consider someting much better like [appstore-sdk-go](https://github.com/Kachit/appstore-sdk-go).
 
