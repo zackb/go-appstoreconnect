@@ -204,10 +204,9 @@ func (c *SalesReport) Get(date time.Time, frequency Frequency, reportType Report
 }
 
 func (s *SalesReportItem) GetHeader() []string {
-	t := reflect.TypeOf(SalesReportItem{})
+	t := reflect.TypeFor[SalesReportItem]()
 	tags := []string{}
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
+	for field := range t.Fields() {
 		tag := field.Tag.Get("tsv")
 		tags = append(tags, tag)
 	}
@@ -218,8 +217,7 @@ func (s *SalesReportItem) GetHeader() []string {
 func (s *SalesReportItem) Values() []string {
 	vals := []string{}
 	t := reflect.ValueOf(s).Elem()
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
+	for _, f := range t.Fields() {
 		vals = append(vals, fmt.Sprintf("%v", f.Interface()))
 	}
 
@@ -237,7 +235,6 @@ func (s *SalesReportResponse) ToCsv() ([]byte, error) {
 	w := csv.NewWriter(buf)
 	d := SalesReportItem{}
 	headers := d.GetHeader()
-	// TODO:  w.Comma = '\t'
 	if err := w.Write(headers); err != nil {
 		return nil, err
 	}
